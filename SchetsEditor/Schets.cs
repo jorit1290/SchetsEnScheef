@@ -6,6 +6,7 @@ namespace SchetsEditor
 {
     public class Schets
     {
+        // HET IS EEN GROTE LAMA EH COMMENT  WAAR IS MIJN SPAGHETTI
         private Bitmap bitmap;
         
         public Schets()
