@@ -89,4 +89,13 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\cirkel.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\cirkel.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\rondje.png" />
+  </ItemGroup>
 </Project>
