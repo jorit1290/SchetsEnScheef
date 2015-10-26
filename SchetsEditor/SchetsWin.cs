@@ -8,7 +8,8 @@ using System.Resources;
 namespace SchetsEditor
 {
     public class SchetsWin : Form
-    {   
+    {
+        private List<ISchetsTool> handelingen;
         MenuStrip menuStrip;
         SchetsControl schetscontrol;
         ISchetsTool huidigeTool;
@@ -56,8 +57,8 @@ namespace SchetsEditor
                                  , "Yellow", "Magenta", "Cyan" 
                                  };
 
-            List<ISchetsTool> handeling;
-            handeling = new List<ISchetsTool>();
+            
+            handelingen = new List<ISchetsTool>();
 
             this.ClientSize = new Size(700, 549);
             huidigeTool = deTools[0];
@@ -181,6 +182,11 @@ namespace SchetsEditor
                 cbb.Items.Add(k);
             cbb.SelectedIndex = 0;
             paneel.Controls.Add(cbb);
+        }
+
+        public void AddHandeling(ISchetsTool t)
+        {
+            handelingen.Add(t);
         }
     }
 }

@@ -22,6 +22,9 @@ namespace SchetsEditor
         {   ToolStripDropDownItem menu;
             menu = new ToolStripMenuItem("File");
             menu.DropDownItems.Add("Nieuw", null, this.nieuw);
+            //menu.DropDownItems.Add("Open", null, this.open);
+            //menu.DropDownItems.Add("Opslaan", null, this.opslaan);
+            //menu.DropDownItems.Add("Opslaan als", null, this.opslaanAls);
             menu.DropDownItems.Add("Exit", null, this.afsluiten);
             menuStrip.Items.Add(menu);
         }
@@ -38,7 +41,6 @@ namespace SchetsEditor
                            , MessageBoxIcon.Information
                            );
         }
-
         private void nieuw(object sender, EventArgs e)
         {   SchetsWin s = new SchetsWin();
             s.MdiParent = this;

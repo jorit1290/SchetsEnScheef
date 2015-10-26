@@ -49,8 +49,6 @@ namespace SchetsEditor
                 s.Invalidate();
             }
         }
-
-        //handeling.Add(TekstTool); -> werkt niet, huh?
     }
 
     public abstract class TweepuntTool : StartpuntTool
