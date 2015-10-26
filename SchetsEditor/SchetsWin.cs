@@ -56,6 +56,9 @@ namespace SchetsEditor
                                  , "Yellow", "Magenta", "Cyan" 
                                  };
 
+            List<ISchetsTool> handeling;
+            handeling = new List<ISchetsTool>();
+
             this.ClientSize = new Size(700, 549);
             huidigeTool = deTools[0];
 
