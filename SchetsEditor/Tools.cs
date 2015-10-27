@@ -117,7 +117,7 @@ namespace SchetsEditor
 
     public class VolCirkelTool : CirkelTool
     {
-        public override string ToString() { return "volle maan"; }
+        public override string ToString() { return "rondje"; }
 
         public override void Compleet(Graphics g, Point p1, Point p2)
         {
