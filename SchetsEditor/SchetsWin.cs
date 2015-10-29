@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.Reflection;
 using System.Resources;
+using System.IO;
 
 namespace SchetsEditor
 {
@@ -14,7 +15,7 @@ namespace SchetsEditor
         SchetsControl schetscontrol;
         ISchetsTool huidigeTool;
         Panel paneel;
-        bool vast;
+        bool vast, veranderd;
         ResourceManager resourcemanager
             = new ResourceManager("SchetsEditor.Properties.Resources"
                                  , Assembly.GetExecutingAssembly()
@@ -42,6 +43,39 @@ namespace SchetsEditor
             this.Close();
         }
 
+        private void naarfile(object obj, EventArgs ea)
+        {
+            SaveFileDialog opslagKeuze = new SaveFileDialog();
+
+            opslagKeuze.Filter = "JPG-bestand|*.jpg|PNG-bestand|*.png|BMP-bestand|*.bmp";
+            opslagKeuze.Title = "Schets opslaan";
+
+            DialogResult resultaat = opslagKeuze.ShowDialog();
+            if (resultaat == DialogResult.OK)
+            {
+                string bestandsnaam = opslagKeuze.FileName;
+                this.schetscontrol.Schets.OpslaanOpFile(bestandsnaam, opslagKeuze.FilterIndex);
+                veranderd = false;
+            }
+
+        }
+
+        private void vanfile(object obj, EventArgs ea)
+        {
+            OpenFileDialog openKiezer = new OpenFileDialog();
+
+            openKiezer.Filter = "Afbeeldingen (*.JPG;*.PNG;*.BMP)|*.JPG;*.PNG;*.BMP|" +
+                                "Alle bestanden (*.*)|*.*";
+            openKiezer.Title = "Schets openen";
+
+            DialogResult resultaat = openKiezer.ShowDialog();
+            if (resultaat == DialogResult.OK)
+            {
+                string bestandsnaam = openKiezer.FileName;
+                schetscontrol.LadenVanFile(bestandsnaam);
+            }
+        }
+
         public SchetsWin()
         {
             ISchetsTool[] deTools = { new PenTool()
@@ -65,6 +99,8 @@ namespace SchetsEditor
 
             schetscontrol = new SchetsControl();
             schetscontrol.Location = new Point(64, 10);
+            schetscontrol.MouseDown += (object o, MouseEventArgs mea) =>
+                                       { veranderd = true; };
             schetscontrol.MouseDown += (object o, MouseEventArgs mea) =>
                                        {   vast=true;  
                                            huidigeTool.MuisVast(schetscontrol, mea.Location); 
@@ -92,6 +128,7 @@ namespace SchetsEditor
             this.maakToolButtons(deTools);
             this.maakAktieButtons(deKleuren);
             this.Resize += this.veranderAfmeting;
+            this.FormClosing += this.Afsluitvrager;
             this.veranderAfmeting(null, null);
         }
 
@@ -100,6 +137,8 @@ namespace SchetsEditor
             ToolStripMenuItem menu = new ToolStripMenuItem("File");
             menu.MergeAction = MergeAction.MatchOnly;
             menu.DropDownItems.Add("Sluiten", null, this.afsluiten);
+            menu.DropDownItems.Add("Opslaan", null, this.naarfile);
+            menu.DropDownItems.Add("Openen", null, this.vanfile);
             menuStrip.Items.Add(menu);
         }
 
@@ -187,6 +226,17 @@ namespace SchetsEditor
         public void AddHandeling(ISchetsTool t)
         {
             handelingen.Add(t);
+        }
+
+        private void Afsluitvrager(object o, FormClosingEventArgs fcea)
+        {
+            if (!veranderd) return;
+            DialogResult zeker = MessageBox.Show("Er zijn onopgeslagen wijzigingen, toch afsluiten?",
+            "Onopgeslagen wijzigingen", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (zeker != DialogResult.Yes)
+            {
+                fcea.Cancel = true;
+            }
         }
     }
 }

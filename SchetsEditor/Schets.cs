@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 
 namespace SchetsEditor
 {
@@ -41,6 +42,33 @@ namespace SchetsEditor
         public void Roteer()
         {
             bitmap.RotateFlip(RotateFlipType.Rotate90FlipNone);
+        }
+
+        public void OpslaanOpFile(string bestandsnaam, int formaat = 1)
+        {
+            ImageFormat opslagformaat;
+            switch (formaat)
+            {
+                case 1:
+                    opslagformaat = ImageFormat.Jpeg;
+                    break;
+                case 2:
+                    opslagformaat = ImageFormat.Png;
+                    break;
+                case 3:
+                    opslagformaat = ImageFormat.Bmp;
+                    break;
+                default:
+                    opslagformaat = ImageFormat.Jpeg;
+                    break;
+            }
+            bitmap.Save(bestandsnaam, opslagformaat);
+        }
+
+        public void LadenVanFile(string bestandsnaam)
+        {
+            Bitmap geladen = new Bitmap(bestandsnaam);
+            bitmap = geladen;
         }
     }
 }
