@@ -15,7 +15,7 @@ namespace SchetsEditor
         public Schets()
         {
             bitmap = new Bitmap(1, 1);
-            buffer = new List<Geometry>(); 
+            buffer = new List<Geometry>();
         }
         public Graphics BitmapGraphics
         {
@@ -25,7 +25,7 @@ namespace SchetsEditor
         {
             if (sz.Width > bitmap.Size.Width || sz.Height > bitmap.Size.Height)
             {
-                Bitmap nieuw = new Bitmap( Math.Max(sz.Width,  bitmap.Size.Width)
+                Bitmap nieuw = new Bitmap(Math.Max(sz.Width, bitmap.Size.Width)
                                          , Math.Max(sz.Height, bitmap.Size.Height)
                                          );
                 Graphics gr = Graphics.FromImage(nieuw);
@@ -102,12 +102,13 @@ namespace SchetsEditor
                     }
                 }
                 sr.Close();
-
                 Herteken();
-            } else
+            }
+
+            else
             {
                 bitmap = new Bitmap(bestandsnaam);
-            }            
+            }
         }
 
         public void Herteken()

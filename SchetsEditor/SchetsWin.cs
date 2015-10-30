@@ -10,7 +10,6 @@ namespace SchetsEditor
 {
     public class SchetsWin : Form
     {
-        private List<ISchetsTool> handelingen;
         MenuStrip menuStrip;
         SchetsControl schetscontrol;
         ISchetsTool huidigeTool;
@@ -43,7 +42,7 @@ namespace SchetsEditor
             this.Close();
         }
 
-        private void naarfile(object obj, EventArgs ea)
+        private void NaarFile(object obj, EventArgs ea)
         {
             SaveFileDialog opslagKeuze = new SaveFileDialog();
 
@@ -60,7 +59,7 @@ namespace SchetsEditor
 
         }
 
-        private void vanfile(object obj, EventArgs ea)
+        private void VanFile(object obj, EventArgs ea)
         {
             OpenFileDialog openKiezer = new OpenFileDialog();
 
@@ -91,8 +90,6 @@ namespace SchetsEditor
                                  , "Yellow", "Magenta", "Cyan"
                                  };
 
-
-            handelingen = new List<ISchetsTool>();
 
             this.ClientSize = new Size(700, 549);
             huidigeTool = deTools[0];
@@ -128,9 +125,9 @@ namespace SchetsEditor
             this.Controls.Add(menuStrip);
             this.maakFileMenu();
             this.maakToolMenu(deTools);
-            this.maakAktieMenu(deKleuren);
+            this.maakActieMenu(deKleuren);
             this.maakToolButtons(deTools);
-            this.maakAktieButtons(deKleuren);
+            this.maakActieButtons(deKleuren);
             this.Resize += this.veranderAfmeting;
             this.FormClosing += this.Afsluitvrager;
             this.veranderAfmeting(null, null);
@@ -141,8 +138,8 @@ namespace SchetsEditor
             ToolStripMenuItem menu = new ToolStripMenuItem("File");
             menu.MergeAction = MergeAction.MatchOnly;
             menu.DropDownItems.Add("Sluiten", null, this.afsluiten);
-            menu.DropDownItems.Add("Opslaan", null, this.naarfile);
-            menu.DropDownItems.Add("Openen", null, this.vanfile);
+            menu.DropDownItems.Add("Opslaan", null, this.NaarFile);
+            menu.DropDownItems.Add("Openen", null, this.VanFile);
             menuStrip.Items.Add(menu);
         }
 
@@ -161,9 +158,9 @@ namespace SchetsEditor
             menuStrip.Items.Add(menu);
         }
 
-        private void maakAktieMenu(String[] kleuren)
+        private void maakActieMenu(String[] kleuren)
         {
-            ToolStripMenuItem menu = new ToolStripMenuItem("Aktie");
+            ToolStripMenuItem menu = new ToolStripMenuItem("Actie");
             menu.DropDownItems.Add("Clear", null, schetscontrol.Schoon);
             menu.DropDownItems.Add("Roteer", null, schetscontrol.Roteer);
             ToolStripMenuItem submenu = new ToolStripMenuItem("Kies kleur");
@@ -194,7 +191,7 @@ namespace SchetsEditor
             }
         }
 
-        private void maakAktieButtons(String[] kleuren)
+        private void maakActieButtons(String[] kleuren)
         {
             paneel = new Panel();
             paneel.Size = new Size(600, 24);
@@ -226,11 +223,6 @@ namespace SchetsEditor
                 cbb.Items.Add(k);
             cbb.SelectedIndex = 0;
             paneel.Controls.Add(cbb);
-        }
-
-        public void AddHandeling(ISchetsTool t)
-        {
-            handelingen.Add(t);
         }
 
         private void Afsluitvrager(object o, FormClosingEventArgs fcea)
