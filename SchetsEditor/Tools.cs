@@ -4,6 +4,23 @@ using System.Drawing.Drawing2D;
 
 namespace SchetsEditor
 {
+    public static class Tools
+    {
+        public static Rectangle Punten2Rechthoek(Point p1, Point p2)
+        {
+            return new Rectangle(new Point(Math.Min(p1.X, p2.X), Math.Min(p1.Y, p2.Y))
+                                , new Size(Math.Abs(p1.X - p2.X), Math.Abs(p1.Y - p2.Y))
+                                );
+        }
+        public static Pen MaakPen(Brush b, int dikte)
+        {
+            Pen pen = new Pen(b, dikte);
+            pen.StartCap = LineCap.Round;
+            pen.EndCap = LineCap.Round;
+            return pen;
+        }
+    }
+
     public interface ISchetsTool
     {
         void MuisVast(SchetsControl s, Point p);
@@ -18,10 +35,12 @@ namespace SchetsEditor
         protected Brush kwast;
 
         public virtual void MuisVast(SchetsControl s, Point p)
-        {   startpunt = p;
+        {
+            startpunt = p;
         }
         public virtual void MuisLos(SchetsControl s, Point p)
-        {   kwast = new SolidBrush(s.PenKleur);
+        {
+            kwast = new SolidBrush(s.PenKleur);
         }
         public abstract void MuisDrag(SchetsControl s, Point p);
         public abstract void Letter(SchetsControl s, char c);
@@ -35,56 +54,40 @@ namespace SchetsEditor
 
         public override void Letter(SchetsControl s, char c)
         {
-            if (c >= 32)
-            {
-                Graphics gr = s.MaakBitmapGraphics();
-                Font font = new Font("Tahoma", 40);
-                string tekst = c.ToString();
-                SizeF sz = 
-                gr.MeasureString(tekst, font, this.startpunt, StringFormat.GenericTypographic);
-                gr.DrawString   (tekst, font, kwast, 
-                                              this.startpunt, StringFormat.GenericTypographic);
-                // gr.DrawRectangle(Pens.Black, startpunt.X, startpunt.Y, sz.Width, sz.Height);
-                startpunt.X += (int)sz.Width;
-                s.Invalidate();
-            }
+            if (!char.IsLetterOrDigit(c)) return;
+
+            var letter = new Letter(kwast, startpunt, c);
+            s.Schets.Toevoegen(letter);
+            s.Invalidate();
+
+            startpunt.X += letter.box.Width;
         }
     }
 
     public abstract class TweepuntTool : StartpuntTool
     {
-        public static Rectangle Punten2Rechthoek(Point p1, Point p2)
-        {   return new Rectangle( new Point(Math.Min(p1.X,p2.X), Math.Min(p1.Y,p2.Y))
-                                , new Size (Math.Abs(p1.X-p2.X), Math.Abs(p1.Y-p2.Y))
-                                );
-        }
-        public static Pen MaakPen(Brush b, int dikte)
-        {   Pen pen = new Pen(b, dikte);
-            pen.StartCap = LineCap.Round;
-            pen.EndCap = LineCap.Round;
-            return pen;
-        }
         public override void MuisVast(SchetsControl s, Point p)
-        {   base.MuisVast(s, p);
+        {
+            base.MuisVast(s, p);
             kwast = Brushes.Gray;
         }
         public override void MuisDrag(SchetsControl s, Point p)
-        {   s.Refresh();
+        {
+            s.Refresh();
             this.Bezig(s.CreateGraphics(), this.startpunt, p);
         }
         public override void MuisLos(SchetsControl s, Point p)
-        {   base.MuisLos(s, p);
-            this.Compleet(s.MaakBitmapGraphics(), this.startpunt, p);
+        {
+            base.MuisLos(s, p);
+            this.Compleet(s.Schets, this.startpunt, p);
             s.Invalidate();
         }
         public override void Letter(SchetsControl s, char c)
         {
         }
         public abstract void Bezig(Graphics g, Point p1, Point p2);
-        
-        public virtual void Compleet(Graphics g, Point p1, Point p2)
-        {   this.Bezig(g, p1, p2);
-        }
+
+        public abstract void Compleet(Schets s, Point p1, Point p2);
     }
 
     public class RechthoekTool : TweepuntTool
@@ -92,16 +95,26 @@ namespace SchetsEditor
         public override string ToString() { return "kader"; }
 
         public override void Bezig(Graphics g, Point p1, Point p2)
-        {   g.DrawRectangle(MaakPen(kwast,3), TweepuntTool.Punten2Rechthoek(p1, p2));
+        {
+            g.DrawRectangle(Tools.MaakPen(kwast, 3), Tools.Punten2Rechthoek(p1, p2));
+        }
+
+        public override void Compleet(Schets s, Point p1, Point p2)
+        {
+            Rechthoek rechthoek = new Rechthoek(kwast, Tools.Punten2Rechthoek(p1, p2));
+            s.Toevoegen(rechthoek);
         }
     }
-    
+
+
     public class VolRechthoekTool : RechthoekTool
     {
         public override string ToString() { return "vlak"; }
 
-        public override void Compleet(Graphics g, Point p1, Point p2)
-        {   g.FillRectangle(kwast, TweepuntTool.Punten2Rechthoek(p1, p2));
+        public override void Compleet(Schets s, Point p1, Point p2)
+        {
+            VolRechthoek volrechthoek = new VolRechthoek(kwast, Tools.Punten2Rechthoek(p1, p2));
+            s.Toevoegen(volrechthoek);
         }
     }
 
@@ -111,7 +124,13 @@ namespace SchetsEditor
 
         public override void Bezig(Graphics g, Point p1, Point p2)
         {
-            g.DrawEllipse(MaakPen(kwast, 3), TweepuntTool.Punten2Rechthoek(p1, p2));
+            g.DrawEllipse(Tools.MaakPen(kwast, 3), Tools.Punten2Rechthoek(p1, p2));
+        }
+
+        public override void Compleet(Schets s, Point p1, Point p2)
+        {
+            Cirkel cirkel = new Cirkel(kwast, Tools.Punten2Rechthoek(p1, p2));
+            s.Toevoegen(cirkel);
         }
     }
 
@@ -119,37 +138,76 @@ namespace SchetsEditor
     {
         public override string ToString() { return "rondje"; }
 
-        public override void Compleet(Graphics g, Point p1, Point p2)
+        public override void Compleet(Schets s, Point p1, Point p2)
         {
-            g.FillEllipse(kwast, TweepuntTool.Punten2Rechthoek(p1, p2));
+            VolCirkel volcirkel = new VolCirkel(kwast, Tools.Punten2Rechthoek(p1, p2));
+            s.Toevoegen(volcirkel);
         }
     }
 
-        public class LijnTool : TweepuntTool
+    public class LijnTool : TweepuntTool
     {
         public override string ToString() { return "lijn"; }
 
         public override void Bezig(Graphics g, Point p1, Point p2)
-        {   g.DrawLine(MaakPen(this.kwast,3), p1, p2);
+        {
+            g.DrawLine(Tools.MaakPen(this.kwast, 3), p1, p2);
+        }
+
+        public override void Compleet(Schets s, Point p1, Point p2)
+        {
+            Lijn lijn = new Lijn(kwast, p1, p2);
+            s.Toevoegen(lijn);
         }
     }
 
-    public class PenTool : LijnTool
+    public class PenTool : TweepuntTool
     {
         public override string ToString() { return "pen"; }
 
-        public override void MuisDrag(SchetsControl s, Point p)
-        {   this.MuisLos(s, p);
-            this.MuisVast(s, p);
+        public override void Bezig(Graphics g, Point p1, Point p2)
+        {
+
+        }
+
+        public override void Compleet(Schets s, Point p1, Point p2)
+        {
+
         }
     }
-    
-    public class GumTool : PenTool
-    {
-        public override string ToString() { return "gum"; }
 
-        public override void Bezig(Graphics g, Point p1, Point p2)
-        {   g.DrawLine(MaakPen(Brushes.White, 7), p1, p2);
+    public class GumTool : StartpuntTool
+    {
+        public override void MuisLos(SchetsControl s, Point p)
+        {
+            base.MuisLos(s, p);
+
+            var buffer = s.Schets.buffer;
+            for (var i = buffer.Count - 1; i >= 0; i--)
+            {
+                var geometry = buffer[i];
+                if (geometry.Bevat(p))
+                {
+                    buffer.RemoveAt(i);
+                    s.Schets.Herteken();
+                    s.Invalidate();
+                    break;
+                }
+            }
         }
+
+
+
+        public override void Letter(SchetsControl s, char c)
+        {
+
+        }
+
+        public override void MuisDrag(SchetsControl s, Point p)
+        {
+
+        }
+
+        public override string ToString() { return "gum"; }
     }
 }
