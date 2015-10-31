@@ -32,7 +32,7 @@ namespace SchetsEditor
     public abstract class StartpuntTool : ISchetsTool
     {
         protected Point startpunt;
-        protected Brush kwast;
+        protected Color kleur;
 
         public virtual void MuisVast(SchetsControl s, Point p)
         {
@@ -40,7 +40,7 @@ namespace SchetsEditor
         }
         public virtual void MuisLos(SchetsControl s, Point p)
         {
-            kwast = new SolidBrush(s.PenKleur);
+            kleur = s.PenKleur;
         }
         public abstract void MuisDrag(SchetsControl s, Point p);
         public abstract void Letter(SchetsControl s, char c);
@@ -54,9 +54,9 @@ namespace SchetsEditor
 
         public override void Letter(SchetsControl s, char c)
         {
-            if (!char.IsLetterOrDigit(c)) return;
+            if (char.IsControl(c)) return;
 
-            var letter = new Letter(kwast, startpunt, c);
+            var letter = new Letter(kleur, startpunt, c);
             s.Schets.Toevoegen(letter);
             s.Invalidate();
 
@@ -69,7 +69,7 @@ namespace SchetsEditor
         public override void MuisVast(SchetsControl s, Point p)
         {
             base.MuisVast(s, p);
-            kwast = Brushes.Gray;
+            kleur = Color.Gray;
         }
         public override void MuisDrag(SchetsControl s, Point p)
         {
@@ -96,12 +96,12 @@ namespace SchetsEditor
 
         public override void Bezig(Graphics g, Point p1, Point p2)
         {
-            g.DrawRectangle(Tools.MaakPen(kwast, 3), Tools.Punten2Rechthoek(p1, p2));
+            g.DrawRectangle(new Pen(kleur, 3), Tools.Punten2Rechthoek(p1, p2));
         }
 
         public override void Compleet(Schets s, Point p1, Point p2)
         {
-            Rechthoek rechthoek = new Rechthoek(kwast, Tools.Punten2Rechthoek(p1, p2));
+            Rechthoek rechthoek = new Rechthoek(kleur, Tools.Punten2Rechthoek(p1, p2));
             s.Toevoegen(rechthoek);
         }
     }
@@ -113,7 +113,7 @@ namespace SchetsEditor
 
         public override void Compleet(Schets s, Point p1, Point p2)
         {
-            VolRechthoek volrechthoek = new VolRechthoek(kwast, Tools.Punten2Rechthoek(p1, p2));
+            VolRechthoek volrechthoek = new VolRechthoek(kleur, Tools.Punten2Rechthoek(p1, p2));
             s.Toevoegen(volrechthoek);
         }
     }
@@ -124,12 +124,12 @@ namespace SchetsEditor
 
         public override void Bezig(Graphics g, Point p1, Point p2)
         {
-            g.DrawEllipse(Tools.MaakPen(kwast, 3), Tools.Punten2Rechthoek(p1, p2));
+            g.DrawEllipse(new Pen(kleur, 3), Tools.Punten2Rechthoek(p1, p2));
         }
 
         public override void Compleet(Schets s, Point p1, Point p2)
         {
-            Cirkel cirkel = new Cirkel(kwast, Tools.Punten2Rechthoek(p1, p2));
+            Cirkel cirkel = new Cirkel(kleur, Tools.Punten2Rechthoek(p1, p2));
             s.Toevoegen(cirkel);
         }
     }
@@ -140,7 +140,7 @@ namespace SchetsEditor
 
         public override void Compleet(Schets s, Point p1, Point p2)
         {
-            VolCirkel volcirkel = new VolCirkel(kwast, Tools.Punten2Rechthoek(p1, p2));
+            VolCirkel volcirkel = new VolCirkel(kleur, Tools.Punten2Rechthoek(p1, p2));
             s.Toevoegen(volcirkel);
         }
     }
@@ -151,28 +151,78 @@ namespace SchetsEditor
 
         public override void Bezig(Graphics g, Point p1, Point p2)
         {
-            g.DrawLine(Tools.MaakPen(this.kwast, 3), p1, p2);
+            g.DrawLine(new Pen(this.kleur, 3), p1, p2);
         }
 
         public override void Compleet(Schets s, Point p1, Point p2)
         {
-            Lijn lijn = new Lijn(kwast, p1, p2);
+            Lijn lijn = new Lijn(kleur, p1, p2);
             s.Toevoegen(lijn);
         }
     }
 
     public class PenTool : TweepuntTool
     {
-        public override string ToString() { return "pen"; }
+        protected Bitmap bitmap;
+        protected Graphics BitmapGraphics;
+        private int minX;
+        private int minY;
+        private int maxX;
+        private int maxY;
+
+        public override void MuisVast(SchetsControl s, Point p)
+        {
+            kleur = s.PenKleur;
+            startpunt = p;
+
+            bitmap = new Bitmap(s.Schets.bitmap.Width, s.Schets.bitmap.Width);
+            BitmapGraphics = Graphics.FromImage(bitmap);
+            minX = p.X;
+            minY = p.Y;
+            maxX = p.X;
+            maxY = p.Y;
+        }
+
+        public override void MuisDrag(SchetsControl s, Point p)
+        {
+            Bezig(s.CreateGraphics(), startpunt, p);
+        }
+
+        public override string ToString()
+        {
+            return "pen";
+        }
 
         public override void Bezig(Graphics g, Point p1, Point p2)
         {
+            minX = Math.Min(minX, p2.X);
+            minY = Math.Min(minY, p2.Y);
+            maxX = Math.Max(maxX, p2.X);
+            maxY = Math.Max(maxY, p2.Y);
 
+            BitmapGraphics.DrawLine(new Pen(kleur, 3), p1, p2);
+            g.DrawImage(bitmap, 0, 0);
+            startpunt = p2;
         }
 
         public override void Compleet(Schets s, Point p1, Point p2)
         {
+            int breedte = maxX - minX + 6;
+            int hoogte = maxY - minY + 6;
 
+            Point min = new Point(minX - 3, minY - 3);
+            Point max = new Point(maxX + 3, maxY + 3);
+
+            Bitmap minibitmap = new Bitmap(breedte, hoogte);
+            Graphics g = Graphics.FromImage(minibitmap);
+
+            g.DrawImage(bitmap, 0, 0, Tools.Punten2Rechthoek(min, max), GraphicsUnit.Pixel);
+
+            Tekening tekening = new Tekening(kleur, minibitmap, min);
+            s.Toevoegen(tekening);
+
+            bitmap.Dispose();
+            BitmapGraphics.Dispose();
         }
     }
 

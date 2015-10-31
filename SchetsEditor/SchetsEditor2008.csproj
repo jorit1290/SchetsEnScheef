@@ -49,7 +49,7 @@
   </Target>
   -->
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="Geometry.cs" />
     <Compile Include="Hoofdscherm.cs">
       <SubType>Form</SubType>
     </Compile>

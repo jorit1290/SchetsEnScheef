@@ -3,19 +3,20 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace SchetsEditor
 {
     public class Schets
     {
-        private Bitmap bitmap;
+        public Bitmap bitmap {get; protected set; }
         public List<Geometry> buffer;
 
 
         public Schets()
         {
             bitmap = new Bitmap(1, 1);
-            buffer = new List<Geometry>(); 
+            buffer = new List<Geometry>();
         }
         public Graphics BitmapGraphics
         {
@@ -25,7 +26,7 @@ namespace SchetsEditor
         {
             if (sz.Width > bitmap.Size.Width || sz.Height > bitmap.Size.Height)
             {
-                Bitmap nieuw = new Bitmap( Math.Max(sz.Width,  bitmap.Size.Width)
+                Bitmap nieuw = new Bitmap(Math.Max(sz.Width, bitmap.Size.Width)
                                          , Math.Max(sz.Height, bitmap.Size.Height)
                                          );
                 Graphics gr = Graphics.FromImage(nieuw);
@@ -66,14 +67,10 @@ namespace SchetsEditor
                     bitmap.Save(bestandsnaam, opslagformaat);
                     break;
                 case 4:
-                    StreamWriter sw = new StreamWriter(bestandsnaam);
-                    foreach (var geometry in buffer)
-                    {
-                        string[] data = geometry.Opslaan();
-                        string regel = string.Join("|", data);
-                        sw.WriteLine(regel);
-                    }
-                    sw.Close();
+                    var stream = new FileStream(bestandsnaam, FileMode.Create);
+                    var formatter = new BinaryFormatter();
+                    formatter.Serialize(stream, buffer);
+                    stream.Close();
                     break;
                 default:
                     opslagformaat = ImageFormat.Jpeg;
@@ -86,28 +83,16 @@ namespace SchetsEditor
         {
             if (Path.GetExtension(bestandsnaam) == ".schets")
             {
-                buffer.Clear();
-
-                StreamReader sr = new StreamReader(bestandsnaam);
-                string regel;
-                while ((regel = sr.ReadLine()) != null)
-                {
-                    string[] data = regel.Split('|');
-                    switch (data[0])
-                    {
-                        case "rechthoek":
-                            Rechthoek rechthoek = new Rechthoek(data);
-                            Toevoegen(rechthoek);
-                            break;
-                    }
-                }
-                sr.Close();
+                var stream = new FileStream(bestandsnaam, FileMode.Open);
+                var formatter = new BinaryFormatter();
+                buffer = (List<Geometry>)formatter.Deserialize(stream);
 
                 Herteken();
-            } else
+            }
+            else
             {
                 bitmap = new Bitmap(bestandsnaam);
-            }            
+            }
         }
 
         public void Herteken()
