@@ -4,6 +4,14 @@ using System.Drawing.Drawing2D;
 
 namespace SchetsEditor
 {
+    public interface ISchetsTool
+    {
+        void MuisVast(SchetsControl s, Point p);
+        void MuisDrag(SchetsControl s, Point p);
+        void MuisLos(SchetsControl s, Point p);
+        void Letter(SchetsControl s, char c);
+    }
+
     public static class Tools
     {
         public static Rectangle Punten2Rechthoek(Point p1, Point p2)
@@ -19,14 +27,6 @@ namespace SchetsEditor
             pen.EndCap = LineCap.Round;
             return pen;
         }
-    }
-
-    public interface ISchetsTool
-    {
-        void MuisVast(SchetsControl s, Point p);
-        void MuisDrag(SchetsControl s, Point p);
-        void MuisLos(SchetsControl s, Point p);
-        void Letter(SchetsControl s, char c);
     }
 
     public abstract class StartpuntTool : ISchetsTool
